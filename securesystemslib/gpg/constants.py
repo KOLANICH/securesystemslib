@@ -15,14 +15,15 @@
   aggregates all the constant definitions and lookup structures for signature
   handling
 """
+from __future__ import absolute_import
 import logging
 import os
 
-import securesystemslib.gpg.rsa as rsa
-import securesystemslib.gpg.dsa as dsa
-import securesystemslib.gpg.eddsa as eddsa
+from . import rsa
+from . import dsa
+from . import eddsa
 
-import securesystemslib.process as process
+from .. import process
 
 log = logging.getLogger(__name__)
 

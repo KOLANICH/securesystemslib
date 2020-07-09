@@ -16,9 +16,10 @@
   parsing and verification.
 
 """
+from __future__ import absolute_import
 import binascii
-import securesystemslib.exceptions
-import securesystemslib.gpg.util
+from .. import exceptions as commonExceptions
+from . import util
 
 CRYPTO = True
 NO_CRYPTO_MSG = 'EdDSA key support for GPG requires the cryptography library'
@@ -73,16 +74,16 @@ def get_pubkey_params(data):
 
   # See 9.2. ECC Curve OID
   if curve_oid != ED25519_PUBLIC_KEY_OID:
-    raise securesystemslib.gpg.exceptions.PacketParsingError(
+    raise exceptions.PacketParsingError(
         "bad ed25519 curve OID '{}', expected {}'".format(
         curve_oid, ED25519_PUBLIC_KEY_OID))
 
   # See 13.3. EdDSA Point Format
-  public_key_len = securesystemslib.gpg.util.get_mpi_length(data[ptr:ptr + 2])
+  public_key_len = util.get_mpi_length(data[ptr:ptr + 2])
   ptr += 2
 
   if public_key_len != ED25519_PUBLIC_KEY_LENGTH:
-    raise securesystemslib.gpg.exceptions.PacketParsingError(
+    raise exceptions.PacketParsingError(
         "bad ed25519 MPI length '{}', expected {}'".format(
         public_key_len, ED25519_PUBLIC_KEY_LENGTH))
 
@@ -90,7 +91,7 @@ def get_pubkey_params(data):
   ptr += 1
 
   if public_key_prefix != ED25519_PUBLIC_KEY_PREFIX:
-    raise securesystemslib.gpg.exceptions.PacketParsingError(
+    raise exceptions.PacketParsingError(
         "bad ed25519 MPI prefix '{}', expected '{}'".format(
         public_key_prefix, ED25519_PUBLIC_KEY_PREFIX))
 
@@ -127,13 +128,13 @@ def get_signature_params(data):
 
   """
   ptr = 0
-  r_length = securesystemslib.gpg.util.get_mpi_length(data[ptr:ptr + 2])
+  r_length = util.get_mpi_length(data[ptr:ptr + 2])
 
   ptr += 2
   r = data[ptr:ptr + r_length]
   ptr += r_length
 
-  s_length = securesystemslib.gpg.util.get_mpi_length(data[ptr:ptr + 2])
+  s_length = util.get_mpi_length(data[ptr:ptr + 2])
   ptr += 2
   s = data[ptr:ptr + s_length]
 
@@ -165,9 +166,9 @@ def create_pubkey(pubkey_info):
 
   """
   if not CRYPTO: # pragma: no cover
-    raise securesystemslib.exceptions.UnsupportedLibraryError(NO_CRYPTO_MSG)
+    raise commonExceptions.UnsupportedLibraryError(NO_CRYPTO_MSG)
 
-  securesystemslib.formats.GPG_ED25519_PUBKEY_SCHEMA.check_match(pubkey_info)
+  formats.GPG_ED25519_PUBKEY_SCHEMA.check_match(pubkey_info)
 
   public_bytes = binascii.unhexlify(pubkey_info["keyval"]["public"]["q"])
   public_key = pyca_ed25519.Ed25519PublicKey.from_public_bytes(public_bytes)
@@ -218,17 +219,17 @@ def verify_signature(signature_object, pubkey_info, content,
 
   """
   if not CRYPTO: # pragma: no cover
-    raise securesystemslib.exceptions.UnsupportedLibraryError(NO_CRYPTO_MSG)
+    raise commonExceptions.UnsupportedLibraryError(NO_CRYPTO_MSG)
 
-  securesystemslib.formats.GPG_SIGNATURE_SCHEMA.check_match(signature_object)
-  securesystemslib.formats.GPG_ED25519_PUBKEY_SCHEMA.check_match(pubkey_info)
+  formats.GPG_SIGNATURE_SCHEMA.check_match(signature_object)
+  formats.GPG_ED25519_PUBKEY_SCHEMA.check_match(pubkey_info)
 
-  hasher = securesystemslib.gpg.util.get_hashing_class(hash_algorithm_id)
+  hasher = util.get_hashing_class(hash_algorithm_id)
 
   pubkey_object = create_pubkey(pubkey_info)
 
   # See RFC4880-bis8 14.8. EdDSA and 5.2.4 "Computing Signatures"
-  digest = securesystemslib.gpg.util.hash_object(
+  digest = util.hash_object(
       binascii.unhexlify(signature_object["other_headers"]),
       hasher(), content)
 

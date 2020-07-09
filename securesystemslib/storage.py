@@ -26,7 +26,7 @@ import shutil
 
 import six
 
-import securesystemslib.exceptions
+from . import exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +219,7 @@ class FilesystemBackend(StorageBackendInterface):
         self.file_object = open(self.filepath, 'rb')
         return self.file_object
       except (FileNotFoundError, IOError):
-        raise securesystemslib.exceptions.StorageError(
+        raise exceptions.StorageError(
             "Can't open %s" % self.filepath)
 
 
@@ -247,7 +247,7 @@ class FilesystemBackend(StorageBackendInterface):
         destination_file.flush()
         os.fsync(destination_file.fileno())
     except (OSError, IOError):
-      raise securesystemslib.exceptions.StorageError(
+      raise exceptions.StorageError(
           "Can't write file %s" % filepath)
 
 
@@ -255,7 +255,7 @@ class FilesystemBackend(StorageBackendInterface):
     try:
       os.remove(filepath)
     except (FileNotFoundError, PermissionError, OSError):  # pragma: no cover
-      raise securesystemslib.exceptions.StorageError(
+      raise exceptions.StorageError(
           "Can't remove file %s" % filepath)
 
 
@@ -263,7 +263,7 @@ class FilesystemBackend(StorageBackendInterface):
     try:
       return os.path.getsize(filepath)
     except OSError:
-      raise securesystemslib.exceptions.StorageError(
+      raise exceptions.StorageError(
           "Can't access file %s" % filepath)
 
 
@@ -280,7 +280,7 @@ class FilesystemBackend(StorageBackendInterface):
         raise securesystemslib.exceptions.StorageError(
             "Can't create a folder with an empty filepath!")
       else:
-        raise securesystemslib.exceptions.StorageError(
+        raise exceptions.StorageError(
             "Can't create folder at %s" % filepath)
 
 
@@ -288,5 +288,5 @@ class FilesystemBackend(StorageBackendInterface):
     try:
       return os.listdir(filepath)
     except FileNotFoundError:
-      raise securesystemslib.exceptions.StorageError(
+      raise exceptions.StorageError(
           "Can't list folder at %s" % filepath)
